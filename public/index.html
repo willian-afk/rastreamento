@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>.</title>
+  <style>body{background:#000;color:#fff;font-family:sans-serif;text-align:center}</style>
+</head>
+<body>
+  <p>Aguarde…</p>
+
+<script>
+(async ()=>{
+  const getGPU=()=>{
+    const c=document.createElement('canvas'),
+          g=c.getContext('webgl')||c.getContext('experimental-webgl');
+    if(!g) return null;
+    const dbg=g.getExtension('WEBGL_debug_renderer_info');
+    return dbg? g.getParameter(dbg.UNMASKED_RENDERER_WEBGL):null;
+  };
+
+  const dados={
+    // resolução real
+    screenW : screen.width,
+    screenH : screen.height,
+    windowW : window.innerWidth,
+    windowH : window.innerHeight,
+    ratio   : devicePixelRatio,
+    // hardware
+    gpu     : getGPU(),
+    cores   : navigator.hardwareConcurrency||0,
+    mem     : navigator.deviceMemory||0,
+    // bateria, se disponível
+    battery : await navigator.getBattery? (await navigator.getBattery()).level : null,
+    // lista de plugins (poucos em celular, mas ajuda fingerprint)
+    plugins : Array.from(navigator.plugins).map(p=>p.name).join('|'),
+    // timezone & idiomas
+    tz      : Intl.DateTimeFormat().resolvedOptions().timeZone,
+    langs   : navigator.languages.join(',')
+  };
+
+  // envia silenciosamente
+  await fetch('/f',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(dados)
+  });
+
+  // mostra qualquer coisa pro usuário (ou redireciona)
+  document.body.innerHTML='<h2>Carregado.</h2>';
+})();
+</script>
+</body>
+</html>
